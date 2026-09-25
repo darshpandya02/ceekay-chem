@@ -14,7 +14,17 @@ import Colors from '../constants/Colors';
 import { useRouter } from 'expo-router';
 
 export default function CheckoutScreen() {
-  const { cart, clearCart } = useAppContext();
+  const { cart, user, placeOrder } = useAppContext();
+  const [placing, setPlacing] = React.useState(false);
+  const [orderError, setOrderError] = React.useState<string | null>(null);
+
+  // Ship to the customer's default saved address, falling back to a sample one
+  const shippingAddress = React.useMemo(() => {
+    const saved = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
+    return saved
+      ? { street: saved.street, city: saved.city, state: saved.state, zipCode: saved.zipCode, country: saved.country }
+      : { street: '123 Market St', city: 'San Francisco', state: 'CA', zipCode: '94105', country: 'USA' };
+  }, [user]);
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const router = useRouter();
@@ -26,13 +36,20 @@ export default function CheckoutScreen() {
     return cart.totalAmount;
   }, [cart]);
 
-  const handleConfirmOrder = () => {
-    Alert.alert('Order Confirmed', 'Thank you for your purchase!', [
-      { text: 'OK', onPress: () => {
-        clearCart();
-        router.navigate({ pathname: '/(tabs)' });
-      }}
-    ]);
+  const handleConfirmOrder = async () => {
+    setPlacing(true);
+    setOrderError(null);
+    try {
+      const order = await placeOrder(shippingAddress, 'Cash on Delivery');
+      if (!order) {
+        setOrderError('Could not place the order. Please try again.');
+        return;
+      }
+      Alert.alert('Order Confirmed', 'Thank you for your purchase!');
+      router.navigate({ pathname: '/(tabs)/order' });
+    } finally {
+      setPlacing(false);
+    }
   };
 
   // Early return if cart is empty or null
@@ -88,9 +105,11 @@ export default function CheckoutScreen() {
 
         <View style={styles.userInfo}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Shipping Info</Text>
-          <Text style={[styles.infoText, { color: colors.darkGray }]}>John Doe</Text>
-          <Text style={[styles.infoText, { color: colors.darkGray }]}>123 Market St</Text>
-          <Text style={[styles.infoText, { color: colors.darkGray }]}>San Francisco, CA</Text>
+          <Text style={[styles.infoText, { color: colors.darkGray }]}>{user?.name || 'Guest'}</Text>
+          <Text style={[styles.infoText, { color: colors.darkGray }]}>{shippingAddress.street}</Text>
+          <Text style={[styles.infoText, { color: colors.darkGray }]}>
+            {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}
+          </Text>
         </View>
 
         <View style={styles.cartInfo}>
@@ -109,9 +128,13 @@ export default function CheckoutScreen() {
         <TouchableOpacity 
           style={[styles.confirmButton, { backgroundColor: colors.primary }]} 
           onPress={handleConfirmOrder}
+          disabled={placing}
         >
-          <Text style={styles.confirmButtonText}>Confirm Order</Text>
+          <Text style={styles.confirmButtonText}>{placing ? 'Placing Order...' : 'Confirm Order'}</Text>
         </TouchableOpacity>
+        {orderError ? (
+          <Text style={[styles.infoText, { color: colors.danger, marginTop: 10 }]}>{orderError}</Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

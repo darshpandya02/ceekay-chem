@@ -19,6 +19,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 
+// Optional demo account, shown on the login screen when set at build time
+const DEMO_EMAIL = process.env.EXPO_PUBLIC_DEMO_EMAIL;
+const DEMO_PASSWORD = process.env.EXPO_PUBLIC_DEMO_PASSWORD;
+
 // Types for authentication
 interface LoginForm {
   email: string;
@@ -287,6 +291,20 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.formContainer}>
+            {DEMO_EMAIL && DEMO_PASSWORD ? (
+              <View style={[styles.demoBox, { borderColor: colors.primary }]}>
+                <Text style={[styles.demoTitle, { color: colors.text }]}>Demo account</Text>
+                <Text style={[styles.demoText, { color: colors.text }]}>Email: {DEMO_EMAIL}</Text>
+                <Text style={[styles.demoText, { color: colors.text }]}>Password: {DEMO_PASSWORD}</Text>
+                <TouchableOpacity
+                  onPress={() => setLoginForm({ email: DEMO_EMAIL, password: DEMO_PASSWORD })}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.switchAuthText, { color: colors.primary, marginTop: 6 }]}>Use demo account</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
             <TextInput
               style={dynamicStyles.input}
               placeholder="Email"
@@ -769,5 +787,19 @@ const styles = StyleSheet.create({
   },
   switchAuthText: {
     fontSize: 16,
+  },
+  demoBox: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  demoTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  demoText: {
+    fontSize: 14,
   },
 });

@@ -14,7 +14,8 @@ import Colors from '../../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrdersScreen() {
-  const { orders, isLoading, error, fetchOrders } = useAppContext();
+  const { orders, isLoading, error, fetchOrders, user } = useAppContext();
+  const isAdmin = user?.role === 'admin';
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   
@@ -28,12 +29,12 @@ export default function OrdersScreen() {
   
   React.useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [user?.id, user?.role]);
   
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headerContainer}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Your Orders</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{isAdmin ? 'All Customer Orders' : 'Your Orders'}</Text>
       </View>
       
       {isLoading && !refreshing ? (

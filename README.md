@@ -1,5 +1,20 @@
 # Welcome to your Expo app 👋
 
+## Live demo
+
+A web build of the app is deployed at https://ceekay-chem.vercel.app, backed by a separate demo API
+(https://ceekay-chem-api.vercel.app) with sample data. Demo customer login details are shown on the
+login screen.
+
+Build-time environment variables:
+
+- `EXPO_PUBLIC_API_URL` - backend base URL, e.g. `https://ceekay-chem-api.vercel.app/api` (defaults to the production backend)
+- `EXPO_PUBLIC_DEMO_EMAIL` / `EXPO_PUBLIC_DEMO_PASSWORD` - optional demo account shown on the login screen
+
+The product assistant calls the backend (`POST /api/assistant`), so no API keys are bundled into the app.
+
+Web build: `npx expo export --platform web` (output in `dist/`, served as a single-page app).
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started

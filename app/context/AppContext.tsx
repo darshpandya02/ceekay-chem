@@ -637,7 +637,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.getOrders();
+      const data = user?.role === 'admin' ? await api.getAllOrders() : await api.getOrders();
       setOrders(data);
     } catch (err) {
       setError('Failed to fetch orders');

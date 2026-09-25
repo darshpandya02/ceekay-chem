@@ -83,7 +83,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="order"
         options={{
           title: 'Orders',
           tabBarIcon: ({ color }) => <FontAwesome name="list-alt" size={24} color={color} />,

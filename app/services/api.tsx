@@ -248,8 +248,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Product, CartItem, Order, User } from '../types';
 
-const API_BASE_URL = 'https://ceekay-backend.onrender.com/api'; 
-// const API_BASE_URL = 'http://localhost:5000/api'; 
+// Set EXPO_PUBLIC_API_URL at build time to point the app at another backend
+// (e.g. http://localhost:5000/api for local development).
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://ceekay-backend.onrender.com/api';
 
 interface LoginResponse {
   token: string;
@@ -435,8 +436,34 @@ class ApiService {
   }
 
   // Order endpoints (require authentication)
+  private normalizeOrders(response: any): Order[] {
+    const list: any[] = Array.isArray(response) ? response : response?.orders || [];
+    return list.map((order) => ({ ...order, id: order.id || order._id }));
+  }
+
   async getOrders(): Promise<Order[]> {
-    return this.makeRequest<Order[]>('/orders');
+    const response = await this.makeRequest<any>('/orders');
+    return this.normalizeOrders(response);
+  }
+
+  // Admin only: orders from every customer
+  async getAllOrders(): Promise<Order[]> {
+    const response = await this.makeRequest<any>('/orders/admin/all');
+    return this.normalizeOrders(response);
+  }
+
+  // Product assistant (the API key lives on the backend)
+  async askAssistant(query: string): Promise<{ available: boolean; answer?: string; message?: string }> {
+    const response = await fetch(`${API_BASE_URL}/assistant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return { available: false, message: data.message || 'The assistant is unavailable right now.' };
+    }
+    return data;
   }
 
   async getOrderById(id: string): Promise<Order> {

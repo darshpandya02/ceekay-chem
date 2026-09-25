@@ -1,5 +1,4 @@
 import React from 'react';
-import axios from 'axios';
 import { TextInput, Button, Alert } from 'react-native';
 import { 
   View, 
@@ -17,7 +16,7 @@ import Colors from '../../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Product } from '../types';
 import { router } from 'expo-router';
-import { GROQ_API_KEY } from '@env';
+import { api } from '../services/api';
 
 export default function HomeScreen() {
   const [query, setQuery] = React.useState('');
@@ -45,29 +44,11 @@ export default function HomeScreen() {
   
     try {
       setLoadingResponse(true);
-      const response = await axios.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          model: 'llama3-8b-8192', // Or use 'llama3-70b-8192' if needed
-          messages: [
-            { role: 'system', content: 'You are a ai sales agent for an chemical wholesaler company - Ceekay Enterprise. The company sells the following products - 2 2 Dichlorodiethyl Ether (DCEE), Sodium Sulphide Yellow Flakes 60% 30ppm, Potassium Bicarbonate, Phosphoric Acid, Ammonium Chloride. Give responses to the client queries accordingly.' },
-            { role: 'user', content: query }
-          ],
-          temperature: 0.7,
-          max_tokens: 200
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-          },
-        }
-      );
-  
-      setAiResponse(response.data.choices[0].message.content.trim());
+      const result = await api.askAssistant(query);
+      setAiResponse(result.available && result.answer ? result.answer : (result.message || 'The assistant is unavailable right now.'));
     } catch (error) {
-      console.error('Groq API error:', error);
-      Alert.alert('Error getting response from Groq');
+      console.error('Assistant error:', error);
+      setAiResponse('The assistant is unavailable right now.');
     } finally {
       setLoadingResponse(false);
     }

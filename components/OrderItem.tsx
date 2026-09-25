@@ -62,7 +62,7 @@ export const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
             {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
           </Text>
           <Text style={[styles.itemNames, { color: colors.darkGray }]} numberOfLines={1}>
-            {order.items.map(item => item.product.name).join(', ')}
+            {order.items.map((item: any) => item.product?.name || item.name).join(', ')}
           </Text>
         </View>
         
@@ -78,6 +78,12 @@ export const OrderItem: React.FC<OrderItemProps> = ({ order }) => {
         </View>
       </View>
       
+      {typeof order.user === 'object' && order.user ? (
+        <Text style={[styles.itemNames, { color: colors.darkGray, marginBottom: 8 }]}>
+          Customer: {(order.user as any).name} ({(order.user as any).email})
+        </Text>
+      ) : null}
+
       <View style={styles.footer}>
         <Text style={[styles.totalLabel, { color: colors.darkGray }]}>Total:</Text>
         <Text style={[styles.totalAmount, { color: colors.primary }]}>
